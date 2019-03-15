@@ -13,6 +13,31 @@ EmailPaymentCanceltxt
 EmailPaymentThankstxt
 EmailValidationtxt
 
+-------
+
+go install github.com/jackdoe/updown/cmd/encrypt
+
+use https://github.com/minio/sio to encrypt streams
+
+encrypt -h
+Usage of ./encrypt:
+  -d    decrypt
+  -k string
+        encryption key, filename or '-' to ask; key is sha256(value) (default "-")
 
 
+% echo 'hello world' | encrypt -k .pass | encrypt -d -k .pass
+hello world
+% echo 'hello world' | encrypt > encrypted
+Key:
+% cat encrypted | encrypt -d
+Key:
+hello world
+
+% cat /dev/zero | encrypt -k .pass | encrypt -d -k .pass | pv > /dev/null
+25.8GiB 0:00:10 [1.16GiB/s] [            <=>                                                  ]
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                  
+23296 jack      20   0   10156   6240   1484 S  80.0   0.0   0:34.21 encrypt                  
+23297 jack      20   0   10156   6276   1540 S  80.0   0.0   0:33.62 encrypt    
 
