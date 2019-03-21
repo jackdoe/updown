@@ -1,3 +1,5 @@
+go get github.com/jackdoe/updown
+
 go install github.com/jackdoe/updown/cmd/snaketocamel
 go install github.com/jackdoe/updown/cmd/cameltosnake
 
