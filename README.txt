@@ -41,3 +41,13 @@ hello world
 23296 jack      20   0   10156   6240   1484 S  80.0   0.0   0:34.21 encrypt                  
 23297 jack      20   0   10156   6276   1540 S  80.0   0.0   0:33.62 encrypt    
 
+-------
+
+go install github.com/jackdoe/updown/cmd/plot
+cat > example
+1
+2
+4
+5
+^D
+cat example | plot > example.png
