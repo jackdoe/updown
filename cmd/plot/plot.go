@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"github.com/wcharczuk/go-chart" //exposes "chart"
+	"github.com/wcharczuk/go-chart/drawing"
 	"os"
 	"regexp"
 	"strconv"
@@ -17,6 +19,10 @@ func floatOrPanic(s string) float64 {
 }
 
 func main() {
+	var ptype = flag.String("mode", "line", "type line, scatter")
+	var pmovingAverage = flag.Bool("line-moving-average", false, "also show moving average")
+	flag.Parse()
+
 	s := bufio.NewScanner(os.Stdin)
 
 	i := 0
@@ -39,21 +45,63 @@ func main() {
 		i++
 	}
 
-	graph := chart.Chart{
-		XAxis: chart.XAxis{
-			Style: chart.StyleShow(),
-		},
-		YAxis: chart.YAxis{
-			Style: chart.StyleShow(),
-		},
-		Series: []chart.Series{
-			chart.ContinuousSeries{
-				XValues: x,
-				YValues: y,
-			},
-		},
-	}
+	var graph chart.Chart
+	if *ptype == "scatter" {
+		viridisByY := func(xr, yr chart.Range, index int, x, y float64) drawing.Color {
+			return chart.Viridis(y, yr.GetMin(), yr.GetMax())
+		}
 
+		graph = chart.Chart{
+			XAxis: chart.XAxis{
+				Style: chart.StyleShow(),
+			},
+			YAxis: chart.YAxis{
+				Style:    chart.StyleShow(),
+				AxisType: chart.YAxisSecondary,
+			},
+			Series: []chart.Series{
+				chart.ContinuousSeries{
+					Style: chart.Style{
+						Show:             true,
+						StrokeWidth:      chart.Disabled,
+						DotWidth:         5,
+						DotColorProvider: viridisByY,
+					},
+					XValues: x,
+					YValues: y,
+				},
+			},
+		}
+	} else if *ptype == "line" {
+		series := chart.ContinuousSeries{
+			XValues: x,
+			YValues: y,
+		}
+
+		graph = chart.Chart{
+			XAxis: chart.XAxis{
+				Style: chart.StyleShow(),
+			},
+			YAxis: chart.YAxis{
+				Style:    chart.StyleShow(),
+				AxisType: chart.YAxisSecondary,
+			},
+		}
+		if *pmovingAverage {
+			smaSeries := &chart.SMASeries{
+				InnerSeries: series,
+			}
+
+			graph.Series = []chart.Series{
+				series,
+				smaSeries,
+			}
+		} else {
+			graph.Series = []chart.Series{series}
+		}
+	} else {
+		panic("unknown --mode")
+	}
 	err := graph.Render(chart.PNG, os.Stdout)
 	if err != nil {
 		panic(err)
