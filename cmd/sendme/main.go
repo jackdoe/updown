@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/miquella/ask"
@@ -13,8 +14,9 @@ import (
 
 func main() {
 	var pfrom = flag.String("ffrom", "", "from")
-	var pto = flag.String("to", "", "to")
+	var pto = flag.String("to", "", "to comma separated list")
 	var puser = flag.String("user", "", "user")
+	var pct = flag.String("content-type", "text/html", "content type")
 	var psmtp = flag.String("smtp", "smtp.gmail.com", "smtp")
 	var psbj = flag.String("subject", fmt.Sprintf("testing %d", time.Now().UnixNano()), "subject")
 	flag.Parse()
@@ -35,9 +37,9 @@ func main() {
 	} else {
 		m.SetHeader("From", *pfrom)
 	}
-	m.SetHeader("To", *pto)
+	m.SetHeader("To", strings.Split(*pto, ",")...)
 	m.SetHeader("Subject", *psbj)
-	m.SetBody("text/html", string(in))
+	m.SetBody(*pct, string(in))
 
 	d := gomail.NewPlainDialer(*psmtp, 587, *puser, pass)
 	if err := d.DialAndSend(m); err != nil {
