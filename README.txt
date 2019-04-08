@@ -53,3 +53,9 @@ cat > example
 5
 ^D
 cat example | plot > example.png
+
+
+-------
+go install github.com/jackdoe/updown/cmd/sendme
+
+% cat bla.html | sendme -u user@gmail.com -subject test -to user2@gmail.com
