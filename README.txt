@@ -59,3 +59,13 @@ cat example | plot > example.png
 go install github.com/jackdoe/updown/cmd/sendme
 
 %  sendme -html a.html -text a.txt -u user@gmail.com -subject test -to user2@gmail.com,user3@gmail.com
+
+------
+go install github.com/jackdoe/updown/cmd/pj
+
+% echo '{"a":1}' | pj
+{
+  "a": 1
+}
+
+
