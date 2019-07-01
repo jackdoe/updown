@@ -69,3 +69,15 @@ go install github.com/jackdoe/updown/cmd/pj
 }
 
 
+
+------
+go install github.com/jackdoe/updown/cmd/ph
+
+% echo '<html><body><div>hello</div></body></html>' | ph
+<html>
+  <body>
+    <div>
+      hello
+    </div>
+  </body>
+</html
