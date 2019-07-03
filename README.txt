@@ -69,6 +69,19 @@ go install github.com/jackdoe/updown/cmd/pj
 }
 
 
+------
+go install github.com/jackdoe/updown/cmd/py
+
+% cat <<EOL | py
+apiVersion: v1
+metadata:
+       name: example
+EOL
+
+apiVersion: v1
+metadata:
+  name: example
+
 
 ------
 go install github.com/jackdoe/updown/cmd/ph
