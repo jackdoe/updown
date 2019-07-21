@@ -94,3 +94,19 @@ go install github.com/jackdoe/updown/cmd/ph
     </div>
   </body>
 </html
+
+
+------
+go install github.com/jackdoe/updown/cmd/onc
+
+for each connection execute the command and pass the connection output
+as the command input, good example is executing tar for each
+connection
+
+% onc -l 7000 tar xf
+...
+
+% tar -cf - . | nc -N localhost 7000
+% tar -cf - . | nc -N localhost 7000
+% tar -cf - . | nc -N localhost 7000
+
