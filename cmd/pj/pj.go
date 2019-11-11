@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	perLine := flag.Bool("one-per-line", false, "is there one json document one per line?")
+	perLine := flag.Bool("l", false, "is there one json document one per line?")
 	flag.Parse()
 
 	je := json.NewEncoder(os.Stdout)
