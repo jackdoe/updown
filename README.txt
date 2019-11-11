@@ -110,3 +110,24 @@ connection
 % tar -cf - . | nc -N localhost 7000
 % tar -cf - . | nc -N localhost 7000
 
+
+------
+go install github.com/jackdoe/updown/cmd/quant
+
+quantiles from stdin
+
+% cat <<EOF | quant
+1
+2
+4
+2
+4
+3
+2
+EOF
+perc25: 1.000000
+perc50: 2.000000
+perc75: 3.000000
+perc90: 4.000000
+perc99: 4.000000
+count: 7

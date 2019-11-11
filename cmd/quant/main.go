@@ -21,7 +21,7 @@ func floatOrPanic(s string) float64 {
 
 func main() {
 	var pop = flag.String("filter-op", "", "filter opt: gt, lt")
-	var fvalue = flag.Float64("filter-value", 0, "ignore values lt or gt (depending on filter-op)")
+	var fvalue = flag.Float64("filter-value", 0, "use values lt or gt (depending on filter-op)")
 	var fquant = flag.String("quantiles", "0.25,0.50,0.75,0.90,0.99", "which quantiles")
 	flag.Parse()
 	filterValue := *fvalue
