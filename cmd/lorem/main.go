@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"flag"
+	"io"
 	"log"
 	"math/rand"
 	"os"
@@ -18,7 +20,7 @@ func getRandomWord() []byte {
 	return wordsList[rand.Intn(len(wordsList))]
 }
 
-func generateWords(fd *os.File, length int) error {
+func generateWords(fd io.Writer, length int) error {
 	_, err := fd.Write(lorem)
 	if err != nil {
 		return err
@@ -39,7 +41,7 @@ func generateWords(fd *os.File, length int) error {
 	return nil
 }
 
-func generateParagraphs(fd *os.File, count, length int, separator []byte) error {
+func generateParagraphs(fd io.Writer, count, length int, separator []byte) error {
 	if length == 0 {
 		length = 10
 	}
@@ -63,17 +65,20 @@ func main() {
 
 	flag.Parse()
 
+	writer := bufio.NewWriter(os.Stdout)
+
 	if *paragraphs == 0 && *words == 0 {
 		flag.Usage()
 	} else if *paragraphs != 0 {
-		err := generateParagraphs(os.Stdout, *paragraphs, *words, []byte(*separator))
+		err := generateParagraphs(writer, *paragraphs, *words, []byte(*separator))
 		if err != nil {
 			log.Fatal("error writing, err: %s", err.Error())
 		}
 	} else if *words != 0 {
-		err := generateWords(os.Stdout, *words)
+		err := generateWords(writer, *words)
 		if err != nil {
 			log.Fatal("error writing, err: %s", err.Error())
 		}
 	}
+	writer.Flush()
 }
