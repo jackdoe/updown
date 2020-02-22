@@ -131,3 +131,21 @@ perc75: 3.000000
 perc90: 4.000000
 perc99: 4.000000
 count: 7
+
+------
+go install github.com/jackdoe/updown/cmd/sumint
+
+sum integers
+
+% cat <<EOF | sumint
+1
+2
+4
+2
+4
+3
+2
+EOF
+
+16
+%
