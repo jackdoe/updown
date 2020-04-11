@@ -149,3 +149,18 @@ EOF
 
 16
 %
+
+-----
+
+go install github.com/jackdoe/updown/cmd/pagerank
+
+cat <<EOF | pagerank
+a b
+a c
+c b
+b d
+EOF
+0.1205 a
+0.3176 b
+0.1716 c
+0.3903 d
