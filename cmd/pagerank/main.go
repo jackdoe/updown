@@ -13,6 +13,7 @@ import (
 func main() {
 	follow := flag.Float64("prob-follow", 0.85, "the bigger the number, less probability we have to teleport to some random link")
 	tolerance := flag.Float64("tolerance", 0.0001, "the smaller the number, the more exact the result will be but more CPU cycles will be needed.")
+	doint := flag.Bool("int", false, "print integers instead of floats (*10000)")
 	flag.Parse()
 
 	sid := map[string]int{}
@@ -47,7 +48,12 @@ func main() {
 	}
 
 	graph.Rank(*follow, *tolerance, func(identifier int, rank float64) {
-		fmt.Printf("%.4f %s\n", rank, back[identifier])
+		if *doint {
+			r := uint64(rank * 1000000)
+			fmt.Printf("%d %s\n", r, back[identifier])
+		} else {
+			fmt.Printf("%.4f %s\n", rank, back[identifier])
+		}
 	})
 }
 
