@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"io"
+	"log"
 	"os"
 )
 
@@ -40,7 +41,8 @@ func main() {
 			var v interface{}
 			err = json.Unmarshal(data, &v)
 			if err != nil {
-				panic(err)
+				log.Println(err)
+				continue
 			}
 			err = je.Encode(v)
 			if err != nil {
