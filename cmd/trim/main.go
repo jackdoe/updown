@@ -1,33 +1,25 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strings"
+
+	"github.com/jackdoe/updown/util"
 )
 
 func main() {
-	cut := flag.String("cut", "", "trim cutset what?")
+	cut := flag.String("cut", "", "trim cutset")
 	flag.Parse()
 
-	strings.TrimSpace("a")
-	r := bufio.NewReader(os.Stdin)
-	for {
-		line, err := r.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
-
+	util.ForeachLine(os.Stdin, func(line string, _hasNewLine bool) {
+		var trimmed string
 		if *cut != "" {
-			fmt.Println(strings.Trim(line[:len(line)-1], *cut))
+			trimmed = strings.Trim(line, *cut)
 		} else {
-			fmt.Println(strings.TrimSpace(line[:len(line)-1]))
+			trimmed = strings.TrimSpace(line)
 		}
-	}
+		fmt.Println(trimmed)
+	})
 }

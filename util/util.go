@@ -11,7 +11,7 @@ func ForeachLine(in io.Reader, cb func(s string, b bool)) {
 		lineNL, err := r.ReadString('\n')
 		if err == io.EOF {
 			if len(lineNL) > 0 {
-				cb(lineNL, true)
+				cb(lineNL, false)
 			}
 			break
 		}
@@ -19,6 +19,6 @@ func ForeachLine(in io.Reader, cb func(s string, b bool)) {
 			panic(err)
 		}
 
-		cb(lineNL, false)
+		cb(lineNL[:len(lineNL)-1], true)
 	}
 }

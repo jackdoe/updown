@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
@@ -9,12 +8,12 @@ import (
 )
 
 func main() {
-	pn := flag.Int("n", 1, "min line length")
-	flag.Parse()
-
+	uniq := map[string]uint64{}
 	util.ForeachLine(os.Stdin, func(line string, _hasNewLine bool) {
-		if len(line) >= *pn {
-			fmt.Println(line)
-		}
+		uniq[line]++
 	})
+
+	for k, count := range uniq {
+		fmt.Printf("%8d %s\n", count, k)
+	}
 }
