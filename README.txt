@@ -164,3 +164,17 @@ EOF
 0.3176 b
 0.1716 c
 0.3903 d
+
+----
+go install github.com/jackdoe/updown/cmd/groupby
+
+group csv by summing all coumns based on column
+e.g.
+
+cat <<EOF | groupby -separator ';'
+a;1;2;3
+b;1;2;3
+a;2;3;4
+EOF
+a;3.00;5.00;7.00
+b;1.00;2.00;3.00
