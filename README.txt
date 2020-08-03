@@ -147,7 +147,7 @@ sum integers
 2
 EOF
 
-16
+16.0
 %
 
 -----
@@ -179,12 +179,13 @@ EOF
 a;3.00;5.00;7.00
 b;1.00;2.00;3.00
 
----
+----
 
 ----
 go install github.com/jackdoe/updown/cmd/delta
 
-group csv by summing all coumns based on column
+print difference between current row and prev row
+
 e.g.
 
 cat <<EOF | delta
@@ -205,4 +206,18 @@ EOF
 5
 990
 
----
+----
+
+go install github.com/jackdoe/updown/cmd/trim
+
+trim input
+
+cat <<EOF | trim
+ hello world
+     bbb
+EOF
+
+hello world
+bbb
+
+----
