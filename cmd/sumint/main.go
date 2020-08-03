@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/jackdoe/updown/util"
 )
 
 func intOrPanic(s string) int64 {
@@ -25,26 +26,23 @@ func floatOrPanic(s string) float64 {
 }
 
 func main() {
-	isFloat := flag.Bool("f", false, "expect floating point numbers")
+	isInt := flag.Bool("int", false, "expect int numbers only")
 	flag.Parse()
 
-	s := bufio.NewScanner(os.Stdin)
-	if !*isFloat {
+	if *isInt {
 		sum := int64(0)
-		for s.Scan() {
-			text := s.Text()
-			v := intOrPanic(text)
+		util.ForeachLine(os.Stdin, func(text string, _last bool) {
+			v := util.IntOrPanic(text)
 			sum += v
-		}
+		})
 		fmt.Printf("%d\n", sum)
+
 	} else {
 		sum := float64(0)
-		for s.Scan() {
-			text := s.Text()
-			v := floatOrPanic(text)
+		util.ForeachLine(os.Stdin, func(text string, _last bool) {
+			v := util.FloatOrPanic(text)
 			sum += v
-		}
+		})
 		fmt.Printf("%f\n", sum)
-
 	}
 }
