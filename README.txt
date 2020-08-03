@@ -178,3 +178,31 @@ a;2;3;4
 EOF
 a;3.00;5.00;7.00
 b;1.00;2.00;3.00
+
+---
+
+----
+go install github.com/jackdoe/updown/cmd/delta
+
+group csv by summing all coumns based on column
+e.g.
+
+cat <<EOF | delta
+1
+2
+3
+1
+5
+10
+1000
+EOF
+
+1
+1
+1
+-2
+4
+5
+990
+
+---
