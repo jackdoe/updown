@@ -53,16 +53,16 @@ func main() {
 
 		graph = chart.Chart{
 			XAxis: chart.XAxis{
-				Style: chart.StyleShow(),
+				Style: chart.Shown(),
 			},
 			YAxis: chart.YAxis{
-				Style:    chart.StyleShow(),
+				Style:    chart.Shown(),
 				AxisType: chart.YAxisSecondary,
 			},
 			Series: []chart.Series{
 				chart.ContinuousSeries{
 					Style: chart.Style{
-						Show:             true,
+						Hidden:           false,
 						StrokeWidth:      chart.Disabled,
 						DotWidth:         5,
 						DotColorProvider: viridisByY,
@@ -80,10 +80,10 @@ func main() {
 
 		graph = chart.Chart{
 			XAxis: chart.XAxis{
-				Style: chart.StyleShow(),
+				Style: chart.Shown(),
 			},
 			YAxis: chart.YAxis{
-				Style:    chart.StyleShow(),
+				Style:    chart.Shown(),
 				AxisType: chart.YAxisSecondary,
 			},
 		}

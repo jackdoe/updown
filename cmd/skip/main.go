@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"os"
+
+	"github.com/jackdoe/updown/util"
 )
 
 func main() {
@@ -11,15 +12,15 @@ func main() {
 	flag.Parse()
 
 	skip := *pskip
-	s := bufio.NewScanner(os.Stdin)
-
-	for s.Scan() {
+	util.ForeachLine(os.Stdin, func(text string, hasNewLine bool) {
 		if skip > 0 {
 			skip--
-			continue
+			return
 		}
 
-		os.Stdout.Write(s.Bytes())
-		os.Stdout.Write([]byte{'\n'})
-	}
+		os.Stdout.Write([]byte(text))
+		if hasNewLine {
+			os.Stdout.Write(util.NL)
+		}
+	})
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt" //exposes "chart"
 	"os"
@@ -9,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bmizerany/perks/quantile"
+	"github.com/jackdoe/updown/util"
 )
 
 func floatOrPanic(s string) float64 {
@@ -39,19 +39,18 @@ func main() {
 		}
 	}
 
-	s := bufio.NewScanner(os.Stdin)
 	quantiles := []float64{}
 	for _, v := range strings.Split(*fquant, ",") {
 		quantiles = append(quantiles, floatOrPanic(v))
 	}
 	q := quantile.NewTargeted(quantiles...)
-	for s.Scan() {
-		text := s.Text()
-		v := floatOrPanic(text)
+	util.ForeachLine(os.Stdin, func(text string, _ bool) {
+		v := util.FloatOrPanic(text)
 		if filter(v) {
 			q.Insert(v)
 		}
-	}
+	})
+
 	for _, quant := range quantiles {
 		fmt.Printf("perc%d: %f\n", int(quant*100), q.Query(quant))
 	}

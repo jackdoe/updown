@@ -1,16 +1,17 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"os"
 
 	"github.com/iancoleman/strcase"
+	"github.com/jackdoe/updown/util"
 )
 
 func main() {
-	s := bufio.NewScanner(os.Stdin)
-	for s.Scan() {
-		fmt.Printf("%s\n", strcase.ToSnake(s.Text()))
-	}
+	util.ForeachLine(os.Stdin, func(text string, hasNewLine bool) {
+		os.Stdout.Write([]byte(strcase.ToSnake(text)))
+		if hasNewLine {
+			os.Stdout.Write(util.NL)
+		}
+	})
 }

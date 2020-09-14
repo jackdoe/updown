@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+// NL = new line
+var NL = []byte{'\n'}
+
+// ForeachLine also supporting lines not ending with \n a bit better than scanner.Scan()
 func ForeachLine(in io.Reader, cb func(s string, b bool)) {
 	r := bufio.NewReader(in)
 	for {
@@ -24,6 +28,7 @@ func ForeachLine(in io.Reader, cb func(s string, b bool)) {
 	}
 }
 
+// IntOrPanic die if not int
 func IntOrPanic(s string) int64 {
 	f, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
@@ -32,6 +37,7 @@ func IntOrPanic(s string) int64 {
 	return f
 }
 
+// FloatOrPanic die if not float
 func FloatOrPanic(s string) float64 {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
