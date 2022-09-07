@@ -18,7 +18,7 @@ func main() {
 	b, err := ioutil.ReadFile(fn)
 	v := uint64(0)
 	if err == nil || errors.Is(err, os.ErrNotExist) {
-		v, err = strconv.ParseUint(string(b), 10, 64)
+		v, _ = strconv.ParseUint(string(b), 10, 64)
 	}
 	fmt.Printf("%d\n", v)
 	v++
