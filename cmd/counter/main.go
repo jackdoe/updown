@@ -20,7 +20,7 @@ func main() {
 	if err == nil || errors.Is(err, os.ErrNotExist) {
 		v, _ = strconv.ParseUint(string(b), 10, 64)
 	}
-	fmt.Printf("%d\n", v)
+	fmt.Printf("%d", v)
 	v++
 	err = ioutil.WriteFile(fn, []byte(fmt.Sprintf("%d", v)), 0600)
 	if err != nil {
