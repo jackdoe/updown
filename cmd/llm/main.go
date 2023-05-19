@@ -134,11 +134,11 @@ func main() {
 		for {
 			stream, err := ai.CreateChatCompletionStream(context.Background(), req)
 			if err != nil {
-				panic(err)
 				if shouldRetry(err) {
 					time.Sleep(5 * time.Second)
 					continue
 				}
+				panic(err)
 			}
 
 			defer stream.Close()
