@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -25,6 +27,7 @@ func main() {
 
 	model := flag.String("m", "gpt-3.5-turbo", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo")
 	temp := flag.Float64("t", 0.7, "temperature")
+	dostream := flag.Bool("s", true, "stream the output")
 	fname := flag.String("f", "", "load the system prompt from a file")
 	flag.Parse()
 
@@ -57,18 +60,40 @@ func main() {
 			Content: string(stdinBytes),
 		})
 	}
-	resp, err := ai.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Temperature: float32(*temp),
-			Model:       *model,
-			Messages:    messages,
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
 
-	text := resp.Choices[0].Message.Content
-	fmt.Printf("%s\n", text)
+	req := openai.ChatCompletionRequest{
+		Temperature: float32(*temp),
+		Model:       *model,
+		Messages:    messages,
+	}
+	if *dostream {
+		req.Stream = true
+		stream, err := ai.CreateChatCompletionStream(context.Background(), req)
+		if err != nil {
+			panic(err)
+		}
+		defer stream.Close()
+		for {
+			response, err := stream.Recv()
+			if errors.Is(err, io.EOF) {
+				break
+			}
+
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf(response.Choices[0].Delta.Content)
+		}
+		fmt.Printf("\n")
+	} else {
+		req.Stream = false
+		resp, err := ai.CreateChatCompletion(context.Background(), req)
+
+		if err != nil {
+			panic(err)
+		}
+		text := resp.Choices[0].Message.Content
+		fmt.Printf("%s\n", text)
+	}
 }
