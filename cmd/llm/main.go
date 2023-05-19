@@ -88,9 +88,8 @@ func main() {
 				panic(err)
 			}
 
-			fmt.Printf(response.Choices[0].Delta.Content)
+			os.Stdout.Write([]byte(response.Choices[0].Delta.Content))
 		}
-		fmt.Printf("\n")
 	} else {
 		req.Stream = false
 		resp, err := ai.CreateChatCompletion(context.Background(), req)
@@ -99,6 +98,7 @@ func main() {
 			panic(err)
 		}
 		text := resp.Choices[0].Message.Content
-		fmt.Printf("%s\n", text)
+		os.Stdout.Write([]byte(text))
 	}
+	fmt.Printf("\n")
 }
