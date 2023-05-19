@@ -34,6 +34,14 @@ func main() {
 		},
 	}
 
+	stdinBytes, _ := ioutil.ReadAll(os.Stdin)
+
+	if len(stdinBytes) > 0 {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: string(stdinBytes),
+		})
+	}
 	resp, err := ai.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
