@@ -80,6 +80,9 @@ func split(input string, chunkSize int) []string {
 			wordsInChunk = wordsInLine
 		}
 	}
+	if current.Len() > 0 {
+		chunks = append(chunks, current.String())
+	}
 
 	return chunks
 }
