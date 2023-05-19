@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -31,6 +32,25 @@ func (i *promptFlags) String() string {
 func (p *promptFlags) Set(value string) error {
 	*p = append(*p, value)
 	return nil
+}
+
+func shouldRetry(err error) bool {
+	e := &openai.APIError{}
+	if errors.As(err, &e) {
+		switch e.HTTPStatusCode {
+		case 401:
+			return false
+		// invalid auth or key (do not retry)
+		case 429:
+			return true
+		// rate limiting or engine overload (wait and retry)
+		case 500:
+			return true
+		default:
+			return false
+		}
+	}
+	return false
 }
 
 func main() {
@@ -111,32 +131,46 @@ func main() {
 
 	if *dostream {
 		req.Stream = true
-		stream, err := ai.CreateChatCompletionStream(context.Background(), req)
-		if err != nil {
-			panic(err)
-		}
-		defer stream.Close()
 		for {
-			response, err := stream.Recv()
-			if errors.Is(err, io.EOF) {
-				break
-			}
-
+			stream, err := ai.CreateChatCompletionStream(context.Background(), req)
 			if err != nil {
 				panic(err)
+				if shouldRetry(err) {
+					time.Sleep(5 * time.Second)
+					continue
+				}
 			}
 
-			os.Stdout.Write([]byte(response.Choices[0].Delta.Content))
+			defer stream.Close()
+			for {
+				response, err := stream.Recv()
+				if errors.Is(err, io.EOF) {
+					break
+				}
+
+				if err != nil {
+					panic(err)
+				}
+
+				os.Stdout.Write([]byte(response.Choices[0].Delta.Content))
+			}
+			break
 		}
 	} else {
 		req.Stream = false
-		resp, err := ai.CreateChatCompletion(context.Background(), req)
-
-		if err != nil {
-			panic(err)
+		for {
+			resp, err := ai.CreateChatCompletion(context.Background(), req)
+			if err != nil {
+				if shouldRetry(err) {
+					time.Sleep(5 * time.Second)
+					continue
+				}
+				panic(err)
+			}
+			text := resp.Choices[0].Message.Content
+			os.Stdout.Write([]byte(text))
+			break
 		}
-		text := resp.Choices[0].Message.Content
-		os.Stdout.Write([]byte(text))
 	}
 	fmt.Printf("\n")
 }
