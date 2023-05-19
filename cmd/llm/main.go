@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
@@ -29,7 +28,6 @@ func main() {
 	fname := flag.String("f", "", "load the system prompt from a file")
 	flag.Parse()
 
-	log.Printf("%v", flag.Args())
 	ai := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 	systemPrompt := ""
 	if len(*fname) != 0 {
