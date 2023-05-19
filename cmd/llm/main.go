@@ -22,13 +22,26 @@ var Usage = func() {
 
 }
 
+type promptFlags []string
+
+func (i *promptFlags) String() string {
+	return "array of promptFlags"
+}
+
+func (p *promptFlags) Set(value string) error {
+	*p = append(*p, value)
+	return nil
+}
+
 func main() {
+	var prompts promptFlags
 	flag.Usage = Usage
 
 	model := flag.String("m", "gpt-3.5-turbo", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, etc")
 	temp := flag.Float64("t", 0.7, "temperature")
 	dostream := flag.Bool("s", true, "stream the output")
-	fname := flag.String("f", "", "load the system prompt from a file")
+	debug := flag.Bool("d", false, "debug print request")
+	flag.Var(&prompts, "p", "set prompts, can be set multiple times, e.g -p @a.txt -p 'you are the best go developer' -p @b.txt")
 	flag.Parse()
 	key := os.Getenv("OPENAI_API_KEY")
 	if len(key) == 0 {
@@ -37,24 +50,38 @@ func main() {
 	}
 
 	ai := openai.NewClient(key)
-	systemPrompt := ""
-	if len(*fname) != 0 {
-		b, err := ioutil.ReadFile(*fname)
-		if err != nil {
-			panic(err)
+	messages := []openai.ChatCompletionMessage{}
+
+	if len(flag.Args()) != 0 {
+		messages = append(messages,
+			openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleSystem,
+				Content: strings.Join(flag.Args(), " "),
+			},
+		)
+	}
+
+	for _, p := range prompts {
+		if strings.HasPrefix(p, "@") {
+			b, err := ioutil.ReadFile(p[1:])
+			if err != nil {
+				panic(err)
+			}
+			messages = append(messages,
+				openai.ChatCompletionMessage{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: string(b),
+				},
+			)
+		} else {
+			messages = append(messages,
+				openai.ChatCompletionMessage{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: p,
+				},
+			)
+
 		}
-		systemPrompt = string(b)
-	}
-
-	if len(systemPrompt) == 0 {
-		systemPrompt = strings.Join(flag.Args(), " ")
-	}
-
-	messages := []openai.ChatCompletionMessage{
-		openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleSystem,
-			Content: systemPrompt,
-		},
 	}
 
 	stdinBytes, _ := ioutil.ReadAll(os.Stdin)
@@ -66,11 +93,19 @@ func main() {
 		})
 	}
 
+	if *debug {
+		for _, m := range messages {
+			os.Stdout.Write([]byte(m.Role + ":" + m.Content + "\n"))
+		}
+		os.Exit(0)
+	}
+
 	req := openai.ChatCompletionRequest{
 		Temperature: float32(*temp),
 		Model:       *model,
 		Messages:    messages,
 	}
+
 	if *dostream {
 		req.Stream = true
 		stream, err := ai.CreateChatCompletionStream(context.Background(), req)
