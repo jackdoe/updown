@@ -41,6 +41,7 @@ func main() {
 	temp := flag.Float64("t", 0.7, "temperature")
 	dostream := flag.Bool("s", true, "stream the output")
 	debug := flag.Bool("d", false, "debug print request")
+	readStdin := flag.Bool("stdin", true, "read the standard input")
 	flag.Var(&prompts, "p", "set prompts, can be set multiple times, e.g -p @a.txt -p 'you are the best go developer' -p @b.txt")
 	flag.Parse()
 	key := os.Getenv("OPENAI_API_KEY")
@@ -84,13 +85,15 @@ func main() {
 		}
 	}
 
-	stdinBytes, _ := ioutil.ReadAll(os.Stdin)
+	if *readStdin {
+		stdinBytes, _ := ioutil.ReadAll(os.Stdin)
 
-	if len(stdinBytes) > 0 {
-		messages = append(messages, openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleUser,
-			Content: string(stdinBytes),
-		})
+		if len(stdinBytes) > 0 {
+			messages = append(messages, openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleUser,
+				Content: string(stdinBytes),
+			})
+		}
 	}
 
 	if *debug {
