@@ -229,3 +229,8 @@ every time you run it it gives an ever increasing number
 then you can use it for tail -f access.log|grep 123123 > tmp.$(counter).txt, so
 you dont overwrite your temp work
 
+
+---
+go install github.com/jackdoe/updown/cmd/llm@latest
+
+echo go.mod | llm transform to json
