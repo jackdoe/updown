@@ -53,6 +53,37 @@ func shouldRetry(err error) bool {
 	return false
 }
 
+func split(input string, chunkSize int) []string {
+	if chunkSize == 0 {
+		return []string{input}
+	}
+
+	lines := strings.Split(input, "\n")
+	chunks := make([]string, 0)
+
+	current := strings.Builder{}
+	wordsInChunk := 0
+	for _, line := range lines {
+		wordsInLine := len(strings.Fields(line))
+
+		if wordsInChunk < chunkSize {
+			current.WriteString(line)
+			current.WriteRune('\n')
+			wordsInChunk += wordsInLine
+		} else {
+			chunks = append(chunks, current.String())
+			current.Reset()
+
+			current.WriteString(line)
+			current.WriteRune('\n')
+
+			wordsInChunk = wordsInLine
+		}
+	}
+
+	return chunks
+}
+
 func main() {
 	var prompts promptFlags
 	flag.Usage = Usage
@@ -61,6 +92,7 @@ func main() {
 	temp := flag.Float64("t", 0.7, "temperature")
 	dostream := flag.Bool("s", true, "stream the output")
 	debug := flag.Bool("d", false, "debug print request")
+	autosplit := flag.Int("a", 0, "split the input every N words (up to closest line break) and create separate request for each chunk")
 	readStdin := flag.Bool("stdin", true, "read the standard input")
 	flag.Var(&prompts, "p", "set prompts, can be set multiple times, e.g -p @a.txt -p 'you are the best go developer' -p @b.txt")
 	flag.Parse()
@@ -71,10 +103,10 @@ func main() {
 	}
 
 	ai := openai.NewClient(key)
-	messages := []openai.ChatCompletionMessage{}
+	messagesSystemPrompt := []openai.ChatCompletionMessage{}
 
 	if len(flag.Args()) != 0 {
-		messages = append(messages,
+		messagesSystemPrompt = append(messagesSystemPrompt,
 			openai.ChatCompletionMessage{
 				Role:    openai.ChatMessageRoleSystem,
 				Content: strings.Join(flag.Args(), " "),
@@ -88,14 +120,14 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			messages = append(messages,
+			messagesSystemPrompt = append(messagesSystemPrompt,
 				openai.ChatCompletionMessage{
 					Role:    openai.ChatMessageRoleSystem,
 					Content: string(b),
 				},
 			)
 		} else {
-			messages = append(messages,
+			messagesSystemPrompt = append(messagesSystemPrompt,
 				openai.ChatCompletionMessage{
 					Role:    openai.ChatMessageRoleSystem,
 					Content: p,
@@ -105,72 +137,88 @@ func main() {
 		}
 	}
 
+	splitted := []openai.ChatCompletionRequest{}
+
 	if *readStdin {
 		stdinBytes, _ := ioutil.ReadAll(os.Stdin)
+		stdinString := string(stdinBytes)
 
-		if len(stdinBytes) > 0 {
-			messages = append(messages, openai.ChatCompletionMessage{
+		for _, chunk := range split(stdinString, *autosplit) {
+			messagesChunk := append([]openai.ChatCompletionMessage(nil), messagesSystemPrompt...)
+
+			messagesChunk = append(messagesChunk, openai.ChatCompletionMessage{
 				Role:    openai.ChatMessageRoleUser,
-				Content: string(stdinBytes),
+				Content: chunk,
+			})
+
+			splitted = append(splitted, openai.ChatCompletionRequest{
+				Temperature: float32(*temp),
+				Model:       *model,
+				Messages:    messagesChunk,
 			})
 		}
+	} else {
+		splitted = append(splitted, openai.ChatCompletionRequest{
+			Temperature: float32(*temp),
+			Model:       *model,
+			Messages:    messagesSystemPrompt,
+		})
 	}
 
 	if *debug {
-		for _, m := range messages {
-			os.Stdout.Write([]byte(m.Role + ":" + m.Content + "\n"))
+		for _, req := range splitted {
+			os.Stdout.Write([]byte("----\n"))
+			for _, m := range req.Messages {
+				os.Stdout.Write([]byte(m.Role + ":" + m.Content + "\n"))
+			}
 		}
 		os.Exit(0)
 	}
 
-	req := openai.ChatCompletionRequest{
-		Temperature: float32(*temp),
-		Model:       *model,
-		Messages:    messages,
-	}
-
-	if *dostream {
-		req.Stream = true
-		for {
-			stream, err := ai.CreateChatCompletionStream(context.Background(), req)
-			if err != nil {
-				if shouldRetry(err) {
-					time.Sleep(5 * time.Second)
-					continue
-				}
-				panic(err)
-			}
-
-			defer stream.Close()
+	for _, req := range splitted {
+		if *dostream {
+			req.Stream = true
 			for {
-				response, err := stream.Recv()
-				if errors.Is(err, io.EOF) {
-					break
-				}
-
+				stream, err := ai.CreateChatCompletionStream(context.Background(), req)
 				if err != nil {
+					if shouldRetry(err) {
+						time.Sleep(5 * time.Second)
+						continue
+					}
 					panic(err)
 				}
 
-				os.Stdout.Write([]byte(response.Choices[0].Delta.Content))
-			}
-			break
-		}
-	} else {
-		req.Stream = false
-		for {
-			resp, err := ai.CreateChatCompletion(context.Background(), req)
-			if err != nil {
-				if shouldRetry(err) {
-					time.Sleep(5 * time.Second)
-					continue
+				defer stream.Close()
+				for {
+					response, err := stream.Recv()
+					if errors.Is(err, io.EOF) {
+						break
+					}
+
+					if err != nil {
+						panic(err)
+					}
+
+					os.Stdout.Write([]byte(response.Choices[0].Delta.Content))
 				}
-				panic(err)
+				break
 			}
-			text := resp.Choices[0].Message.Content
-			os.Stdout.Write([]byte(text))
-			break
+		} else {
+			req.Stream = false
+			for {
+				resp, err := ai.CreateChatCompletion(context.Background(), req)
+				if err != nil {
+					if shouldRetry(err) {
+						time.Sleep(5 * time.Second)
+						continue
+					}
+					panic(err)
+				}
+				text := resp.Choices[0].Message.Content
+				os.Stdout.Write([]byte(text))
+				break
+			}
 		}
+		fmt.Printf("\n")
 	}
-	fmt.Printf("\n")
 }
