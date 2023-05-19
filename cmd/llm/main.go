@@ -14,17 +14,21 @@ import (
 func main() {
 	model := flag.String("m", "gpt-3.5-turbo", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo")
 	temp := flag.Float64("t", 0.7, "temperature")
-	initial := flag.String("s", "summarize the following text", "initial system prompt, use @file.txt to load from a file named file.txt")
+	fname := flag.String("f", "", "load the system prompt from a file")
 	flag.Parse()
 
 	ai := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
-	systemPrompt := *initial
-	if strings.HasPrefix(systemPrompt, "@") {
-		b, err := ioutil.ReadFile(systemPrompt[1:])
+	systemPrompt := ""
+	if len(*fname) != 0 {
+		b, err := ioutil.ReadFile(*fname)
 		if err != nil {
 			panic(err)
 		}
 		systemPrompt = string(b)
+	}
+
+	if len(systemPrompt) == 0 {
+		systemPrompt = strings.Join(flag.Args(), " ")
 	}
 
 	messages := []openai.ChatCompletionMessage{
