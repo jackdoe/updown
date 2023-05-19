@@ -25,13 +25,18 @@ var Usage = func() {
 func main() {
 	flag.Usage = Usage
 
-	model := flag.String("m", "gpt-3.5-turbo", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo")
+	model := flag.String("m", "gpt-3.5-turbo", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, etc")
 	temp := flag.Float64("t", 0.7, "temperature")
 	dostream := flag.Bool("s", true, "stream the output")
 	fname := flag.String("f", "", "load the system prompt from a file")
 	flag.Parse()
+	key := os.Getenv("OPENAI_API_KEY")
+	if len(key) == 0 {
+		fmt.Fprintf(os.Stderr, "Define environment variable OPENAI_API_KEY, to get a key go to https://platform.openai.com/account/api-keys\n")
+		os.Exit(1)
+	}
 
-	ai := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
+	ai := openai.NewClient(key)
 	systemPrompt := ""
 	if len(*fname) != 0 {
 		b, err := ioutil.ReadFile(*fname)
