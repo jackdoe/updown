@@ -118,7 +118,7 @@ func main() {
 	}
 
 	for _, p := range prompts {
-		b, err := ioutil.ReadFile(p[1:])
+		b, err := ioutil.ReadFile(p)
 		if err != nil {
 			panic(err)
 		}
