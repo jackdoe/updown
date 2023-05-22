@@ -95,9 +95,9 @@ func main() {
 	temp := flag.Float64("t", 0.7, "temperature")
 	dostream := flag.Bool("s", true, "stream the output")
 	debug := flag.Bool("d", false, "debug print request")
-	autosplit := flag.Int("a", 0, "split the input every N words (up to closest line break) and create separate request for each chunk")
+	autosplit := flag.Int("a", 0, "split the stdin input every N words (up to closest line break) and create separate request for each chunk")
 	readStdin := flag.Bool("stdin", true, "read the standard input")
-	flag.Var(&prompts, "p", "set prompts, can be set multiple times, e.g -p @a.txt -p 'you are the best go developer' -p @b.txt")
+	flag.Var(&prompts, "p", "set prompts, can be set multiple times, e.g -p a.txt -p <('echo you are the best go developer') -p b.txt")
 	flag.Parse()
 	key := os.Getenv("OPENAI_API_KEY")
 	if len(key) == 0 {
@@ -118,26 +118,16 @@ func main() {
 	}
 
 	for _, p := range prompts {
-		if strings.HasPrefix(p, "@") {
-			b, err := ioutil.ReadFile(p[1:])
-			if err != nil {
-				panic(err)
-			}
-			messagesSystemPrompt = append(messagesSystemPrompt,
-				openai.ChatCompletionMessage{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: string(b),
-				},
-			)
-		} else {
-			messagesSystemPrompt = append(messagesSystemPrompt,
-				openai.ChatCompletionMessage{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: p,
-				},
-			)
-
+		b, err := ioutil.ReadFile(p[1:])
+		if err != nil {
+			panic(err)
 		}
+		messagesSystemPrompt = append(messagesSystemPrompt,
+			openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleSystem,
+				Content: string(b),
+			},
+		)
 	}
 
 	splitted := []openai.ChatCompletionRequest{}
@@ -191,7 +181,6 @@ func main() {
 					panic(err)
 				}
 
-				defer stream.Close()
 				for {
 					response, err := stream.Recv()
 					if errors.Is(err, io.EOF) {
@@ -204,6 +193,7 @@ func main() {
 
 					os.Stdout.Write([]byte(response.Choices[0].Delta.Content))
 				}
+				stream.Close()
 				break
 			}
 		} else {
