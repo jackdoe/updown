@@ -94,6 +94,7 @@ func main() {
 	model := flag.String("m", "gpt-3.5-turbo", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, etc")
 	temp := flag.Float64("t", 0.7, "temperature")
 	dostream := flag.Bool("s", true, "stream the output")
+	expert := flag.String("e", "", "what are you an expert in?")
 	debug := flag.Bool("d", false, "debug print request")
 	autosplit := flag.Int("a", 0, "split the stdin input every N words (up to closest line break) and create separate request for each chunk")
 	readStdin := flag.Bool("stdin", true, "read the standard input")
@@ -107,6 +108,15 @@ func main() {
 
 	ai := openai.NewClient(key)
 	messagesSystemPrompt := []openai.ChatCompletionMessage{}
+
+	if *expert != "" {
+		messagesSystemPrompt = append(messagesSystemPrompt,
+			openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleSystem,
+				Content: fmt.Sprintf("You are an expert in %s", *expert),
+			},
+		)
+	}
 
 	if len(flag.Args()) != 0 {
 		messagesSystemPrompt = append(messagesSystemPrompt,
