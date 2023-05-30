@@ -222,7 +222,7 @@ bbb
 
 ----
 
-go install github.com/jackdoe/updown/cmd/counter@latest
+go install github.com/jackdoe/updown/cmd/counter@latest 
 
 every time you run it it gives an ever increasing number
 
@@ -233,4 +233,43 @@ you dont overwrite your temp work
 ---
 go install github.com/jackdoe/updown/cmd/llm@latest
 
-echo go.mod | llm transform to json
+$ cat a.csv 
+name,age
+john,19
+jane,19
+jack doe,20
+$ cat a.csv | llm transform into json                              
+[
+  {"name": "john", "age": 19}, 
+  {"name": "jane", "age": 19}, 
+  {"name": "jack doe", "age": 20}
+]
+$ cat a.csv | llm transform into json | llm transform to key by age
+{
+   "19":[
+      {
+         "name":"john",
+         "age":19
+      },
+      {
+         "name":"jane",
+         "age":19
+      }
+   ],
+   "20":[
+      {
+         "name":"jack doe",
+         "age":20
+      }
+   ]
+} 
+
+---
+go install github.com/jackdoe/updown/cmd/tokens@latest
+
+$ echo -n hello world | tokens
+2
+$ echo -n hello world | tokens -p
+15339 1917
+
+
