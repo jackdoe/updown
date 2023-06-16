@@ -24,12 +24,10 @@ func main() {
 	b, _ := ioutil.ReadAll(os.Stdin)
 	tokens := tkm.Encode(string(b), nil, nil)
 	if *print {
-
 		for i, token := range tokens {
 			os.Stdout.Write([]byte(fmt.Sprintf("%d", token)))
 			if i == len(tokens)-1 {
 				os.Stdout.Write([]byte("\n"))
-
 			} else {
 				os.Stdout.Write([]byte(" "))
 			}

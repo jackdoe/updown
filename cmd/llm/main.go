@@ -91,7 +91,7 @@ func main() {
 	var prompts promptFlags
 	flag.Usage = Usage
 
-	model := flag.String("m", "gpt-3.5-turbo", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, etc")
+	model := flag.String("m", "gpt-3.5-turbo-16k", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, gpt-3.5-turbo-16k etc")
 	temp := flag.Float64("t", 0.7, "temperature")
 	dostream := flag.Bool("s", true, "stream the output")
 	expert := flag.String("e", "", "what are you an expert in?")
