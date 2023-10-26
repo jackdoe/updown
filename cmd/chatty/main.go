@@ -205,6 +205,7 @@ func main() {
 		question.Reset()
 
 		os.Stdout.WriteString("\n")
+		id++
 	}
 
 	inputPrompt()
