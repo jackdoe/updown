@@ -128,6 +128,8 @@ func main() {
 		os.Stdout.WriteString("\n")
 
 	}
+	id++
+
 	question := strings.Builder{}
 	answer := strings.Builder{}
 	scanner := bufio.NewScanner(os.Stdin)
@@ -140,12 +142,12 @@ func main() {
 
 	}
 	qa := func() {
-		questionf, err := os.OpenFile(filepath.Join(dir, fmt.Sprintf("%06d.0q", id)), os.O_CREATE|os.O_WRONLY, 0600)
+		questionFile, err := os.OpenFile(filepath.Join(dir, fmt.Sprintf("%06d.0q", id)), os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			panic(err)
 		}
-		questionf.WriteString(question.String())
-		questionf.Close()
+		questionFile.WriteString(question.String())
+		questionFile.Close()
 
 		messagesSystemPrompt = append(messagesSystemPrompt,
 			openai.ChatCompletionMessage{
@@ -154,7 +156,7 @@ func main() {
 			},
 		)
 
-		answerf, err := os.OpenFile(filepath.Join(dir, fmt.Sprintf("%06d.1a", id)), os.O_CREATE|os.O_WRONLY, 0600)
+		answerFile, err := os.OpenFile(filepath.Join(dir, fmt.Sprintf("%06d.1a", id)), os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			panic(err)
 		}
@@ -188,9 +190,11 @@ func main() {
 			}
 			delta := []byte(response.Choices[0].Delta.Content)
 			answer.Write(delta)
+
 			os.Stdout.Write(delta)
-			answerf.Write(delta)
+			answerFile.Write(delta)
 		}
+
 		messagesSystemPrompt = append(messagesSystemPrompt,
 			openai.ChatCompletionMessage{
 				Role:    openai.ChatMessageRoleAssistant,
@@ -199,7 +203,7 @@ func main() {
 		)
 
 		stream.Close()
-		answerf.Close()
+		answerFile.Close()
 
 		answer.Reset()
 		question.Reset()
