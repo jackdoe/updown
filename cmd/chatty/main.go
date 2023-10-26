@@ -44,11 +44,11 @@ func main() {
 	defaultRoot := filepath.Join(home, ".updown-llm")
 
 	pmodel := flag.String("m", "gpt-4", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, gpt-3.5-turbo-16k, 3 means gpt-3.5-turbo")
-	temp := flag.Float64("t", 0.7, "temperature")
+	temp := flag.Float64("temperature", 0.7, "temperature")
 	lastNfiles := flag.Uint64("n", 40, "only read last N question/answers")
 	root := flag.String("root", defaultRoot, "root")
 	pmultiline := flag.Bool("multiline", false, "multiline")
-	topic := flag.String("topic", "programming", "topic")
+	topic := flag.String("t", "programming", "topic")
 	preprompt := flag.String("p", "you are an expert in programming, particularly c and go, also in vim tmux and netbsd", "preprompt")
 	debug := flag.Bool("d", false, "debug print request")
 	flag.Parse()
