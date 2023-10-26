@@ -206,6 +206,7 @@ func main() {
 
 		os.Stdout.WriteString("\n")
 		id++
+
 	}
 
 	inputPrompt()
@@ -233,6 +234,7 @@ func main() {
 		} else {
 			if multiline {
 				question.WriteString(text)
+				question.WriteString("\n")
 			} else {
 				question.WriteString(text)
 				qa()
