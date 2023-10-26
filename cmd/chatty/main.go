@@ -49,7 +49,6 @@ func main() {
 	root := flag.String("root", defaultRoot, "root")
 	pmultiline := flag.Bool("multiline", false, "multiline")
 	topic := flag.String("t", "programming", "topic")
-	preprompt := flag.String("p", "you are an expert in programming, particularly c and go, also in vim tmux and netbsd", "preprompt")
 	debug := flag.Bool("d", false, "debug print request")
 	flag.Parse()
 
@@ -65,19 +64,42 @@ func main() {
 	} else if model == "4" {
 		model = "gpt-4"
 	}
-
+	scanner := bufio.NewScanner(os.Stdin)
 	ai := openai.NewClient(key)
-	messagesSystemPrompt := []openai.ChatCompletionMessage{}
+	dir := filepath.Join(*root, *topic)
+	os.MkdirAll(dir, 0700)
+	prepromptFn := filepath.Join(dir, "preprompt")
+	preprompt := ""
+	if _, err := os.Stat(prepromptFn); err != nil {
+		fmt.Printf("preprompt file not found:\n%s\nwrite the preprompt (empty for default).\n> ", prepromptFn)
+		for scanner.Scan() {
+			preprompt = strings.TrimSpace(scanner.Text())
+			break
+		}
+		if preprompt == "" {
+			preprompt = `I want you to act as a very experienced and versatile developer with experience in C, Go, the linux kernel, netbsd. You also have experience with vim and tmux.`
+		}
 
+		if err := ioutil.WriteFile(prepromptFn, []byte(preprompt), 0600); err != nil {
+			panic(err)
+		}
+	} else {
+		b, err := ioutil.ReadFile(prepromptFn)
+		if err != nil {
+			panic(err)
+		}
+
+		preprompt = string(b)
+	}
+
+	messagesSystemPrompt := []openai.ChatCompletionMessage{}
 	messagesSystemPrompt = append(messagesSystemPrompt,
 		openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleSystem,
-			Content: fmt.Sprintf(*preprompt),
+			Content: fmt.Sprintf(preprompt),
 		},
 	)
 
-	dir := filepath.Join(*root, *topic)
-	os.MkdirAll(dir, 0700)
 	// load the old question/answer files
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -132,7 +154,7 @@ func main() {
 
 	question := strings.Builder{}
 	answer := strings.Builder{}
-	scanner := bufio.NewScanner(os.Stdin)
+
 	inputPrompt := func() {
 		if multiline {
 			os.Stdout.WriteString(fmt.Sprintf("multiline %s> ", model))
