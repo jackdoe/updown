@@ -43,7 +43,7 @@ func main() {
 	}
 	defaultRoot := filepath.Join(home, ".updown-llm")
 
-	pmodel := flag.String("m", "gpt-4", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, gpt-3.5-turbo-16k, 3 means gpt-3.5-turbo")
+	pmodel := flag.String("m", "gpt-4-1106-preview", "options: gpt-4-32k, gpt-4, gpt-3.5-turbo, gpt-3.5-turbo-16k, 3 means gpt-3.5-turbo")
 	temp := flag.Float64("temperature", 0.7, "temperature")
 	lastNfiles := flag.Uint64("n", 40, "only read last N question/answers")
 	root := flag.String("root", defaultRoot, "root")
