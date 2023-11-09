@@ -50,8 +50,9 @@ func main() {
 	pmultiline := flag.Bool("multiline", false, "multiline")
 	topic := flag.String("t", "programming", "topic")
 	debug := flag.Bool("d", false, "debug print request")
+	onlyInput := flag.Bool("i", false, "only stdin")
 	flag.Parse()
-	hasCmdLinePrompt := len(flag.Args()) != 0
+	hasCmdLinePrompt := len(flag.Args()) != 0 || *onlyInput
 	key := os.Getenv("OPENAI_API_KEY")
 	if len(key) == 0 {
 		fmt.Fprintf(os.Stderr, "Define environment variable OPENAI_API_KEY, to get a key go to https://platform.openai.com/account/api-keys\n")
@@ -70,35 +71,39 @@ func main() {
 	os.MkdirAll(dir, 0700)
 	prepromptFn := filepath.Join(dir, "preprompt")
 	preprompt := ""
-	if _, err := os.Stat(prepromptFn); err != nil {
-		fmt.Printf("preprompt file not found:\n%s\nwrite the preprompt (empty for default).\n> ", prepromptFn)
-		for scanner.Scan() {
-			preprompt = strings.TrimSpace(scanner.Text())
-			break
-		}
-		if preprompt == "" {
-			preprompt = `I want you to act as a very experienced and versatile developer with experience in C, Go, the linux kernel, netbsd. You also have experience with vim and tmux.`
-		}
+	if !hasCmdLinePrompt {
+		if _, err := os.Stat(prepromptFn); err != nil {
+			fmt.Printf("preprompt file not found:\n%s\nwrite the preprompt (empty for default).\n> ", prepromptFn)
+			for scanner.Scan() {
+				preprompt = strings.TrimSpace(scanner.Text())
+				break
+			}
+			if preprompt == "" {
+				preprompt = `I want you to act as a very experienced and versatile developer with experience in C, Go, the linux kernel, netbsd. You also have experience with vim and tmux.`
+			}
 
-		if err := ioutil.WriteFile(prepromptFn, []byte(preprompt), 0600); err != nil {
-			panic(err)
-		}
-	} else {
-		b, err := ioutil.ReadFile(prepromptFn)
-		if err != nil {
-			panic(err)
-		}
+			if err := ioutil.WriteFile(prepromptFn, []byte(preprompt), 0600); err != nil {
+				panic(err)
+			}
+		} else {
+			b, err := ioutil.ReadFile(prepromptFn)
+			if err != nil {
+				panic(err)
+			}
 
-		preprompt = string(b)
+			preprompt = string(b)
+		}
 	}
 
 	messagesSystemPrompt := []openai.ChatCompletionMessage{}
-	messagesSystemPrompt = append(messagesSystemPrompt,
-		openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleSystem,
-			Content: fmt.Sprintf(preprompt),
-		},
-	)
+	if preprompt != "" {
+		messagesSystemPrompt = append(messagesSystemPrompt,
+			openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleSystem,
+				Content: fmt.Sprintf(preprompt),
+			},
+		)
+	}
 
 	// load the old question/answer files
 	files, err := ioutil.ReadDir(dir)
@@ -244,10 +249,18 @@ func main() {
 	}
 
 	if hasCmdLinePrompt {
-		question.WriteString(strings.Join(flag.Args(), " "))
+		if len(flag.Args()) > 0 {
+			question.WriteString(strings.Join(flag.Args(), " "))
+			question.WriteRune('\n')
+		}
+		if *onlyInput {
+			b, _ := ioutil.ReadAll(os.Stdin)
+			question.Write(b)
+		}
 		qa()
 		os.Exit(0)
 	}
+
 	inputPrompt()
 	for scanner.Scan() {
 		text := scanner.Text()
