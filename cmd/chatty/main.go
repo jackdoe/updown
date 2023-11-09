@@ -51,7 +51,7 @@ func main() {
 	topic := flag.String("t", "programming", "topic")
 	debug := flag.Bool("d", false, "debug print request")
 	flag.Parse()
-
+	hasCmdLinePrompt := len(flag.Args()) != 0
 	key := os.Getenv("OPENAI_API_KEY")
 	if len(key) == 0 {
 		fmt.Fprintf(os.Stderr, "Define environment variable OPENAI_API_KEY, to get a key go to https://platform.openai.com/account/api-keys\n")
@@ -136,18 +136,26 @@ func main() {
 		role := openai.ChatMessageRoleUser
 		if suffix == "1a" {
 			role = openai.ChatMessageRoleAssistant
-			os.Stdout.WriteString("A:")
+			if !hasCmdLinePrompt {
+				os.Stdout.WriteString("A:")
+			}
 		} else {
-			os.Stdout.WriteString("Q:")
+			if !hasCmdLinePrompt {
+				os.Stdout.WriteString("Q:")
+			}
 		}
-		os.Stdout.Write(b)
+		if !hasCmdLinePrompt {
+			os.Stdout.Write(b)
+		}
 		messagesSystemPrompt = append(messagesSystemPrompt,
 			openai.ChatCompletionMessage{
 				Role:    role,
 				Content: string(b),
 			},
 		)
-		os.Stdout.WriteString("\n")
+		if !hasCmdLinePrompt {
+			os.Stdout.WriteString("\n")
+		}
 
 	}
 	id++
@@ -235,6 +243,11 @@ func main() {
 
 	}
 
+	if hasCmdLinePrompt {
+		question.WriteString(strings.Join(flag.Args(), " "))
+		qa()
+		os.Exit(0)
+	}
 	inputPrompt()
 	for scanner.Scan() {
 		text := scanner.Text()
