@@ -177,6 +177,9 @@ func main() {
 
 	}
 	qa := func() {
+		if question.Len() == 0 {
+			return
+		}
 		questionFile, err := os.OpenFile(filepath.Join(dir, fmt.Sprintf("%06d.0q", id)), os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			panic(err)
